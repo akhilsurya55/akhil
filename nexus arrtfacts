@@ -1,0 +1,50 @@
+node {
+    stage('scm'){
+          git 'https://github.com/akhilsurya55/game-of-life.git'
+    }
+
+    stage('build'){
+        sh 'mvn package'
+    }
+    stage ('deploy the tomcat') {
+            
+      sshagent(['admin']) {
+   sh """                     
+                 scp -o StrictHostKeyChecking=no gameoflife-web/target/gameoflife.war ec2-user@18.237.25.133:/opt/tomcat8/webapps/
+                 ssh ec2-user@18.237.25.133 /opt/tomcat8/bin/shutdown.sh
+                ssh ec2-user@18.237.25.133 /opt/tomcat8/bin/startup.sh            
+      """
+}
+    
+}   
+    stage('sonar') {
+  
+     withSonarQubeEnv(credentialsId: 'sonar') {
+     sh 'mvn org.sonarsource.scanner.maven:sonar-maven-plugin:3.6.0.1398:sonar'
+        }
+    }
+    stage('Upload War To Nexus'){
+            
+                script{
+
+
+nexusArtifactUploader artifacts: 
+[
+    [
+        artifactId: 'gameoflife',
+        classifier: '', 
+        file: '/var/lib/jenkins/workspace/tomcat deploy/gameoflife-web/target/gameoflife.war', 
+        type: 'war'
+        ]
+        ], 
+        credentialsId: 'tomcat_pass', 
+        groupId: 'com.wakaleo.gameoflife', 
+        nexusUrl: '54.71.11.111', 
+        nexusVersion: 'nexus3', 
+        protocol: 'http', 
+        repository: 'game-of-life', 
+        version: '1.0-SNAPSHOT'
+                }
+            
+}      
+}
