@@ -1,6 +1,9 @@
-FROM tomcat:8
-RUN apt-get update && apt-get install openjdk-8-jdk tomcat8 -y
-LABEL author="akhilsurya"
-ADD https://referenceappkhaja.s3-us-west-2.amazonaws.com/gameoflife.war /usr/local/tomcat/webapps/gameoflife.war
+FROM openjdk:8
+LABEL author="khaja"
+LABEL version="0.3"
+LABEL project="QT"
+ADD https://referenceappkhaja.s3-us-west-2.amazonaws.com/spring-petclinic-2.2.0.BUILD-SNAPSHOT.jar  /spring-petclinic-2.2.0.BUILD-SNAPSHOT.jar
+COPY spring-petclinic.jar  /spring-petclinic.jar
 EXPOSE 8080
-CMD ["catalina.sh", "run"]
+ENTRYPOINT ["java"]
+CMD ["-jar",  "/spring-petclinic-2.2.0.BUILD-SNAPSHOT.jar"]
